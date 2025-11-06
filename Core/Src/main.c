@@ -137,9 +137,9 @@ int main(void)
               MeshPacket pkt;
               Commands cmd = MOVE_FORWARD;
               mesh_build_packet(&pkt,0x00,0x01,FLAG_ACK_REQ ,next_msg_id(),(uint8_t*)&cmd,1);
-
-
-              if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, 12, 100) == 1){
+              uint8_t* temp_p = (uint8_t*)&pkt; // i need this for Lora_transmit
+              uint8_t total_len = offsetof(MeshPacket, payload) + pkt.length + 1; // +1 for CRC
+              if(LoRa_transmit(&myLoRa, temp_p, total_len, 100) == 1){
                   HAL_GPIO_WritePin(TRANSMITING_LED_GPIO_Port,TRANSMITING_LED_Pin,1);
                   HAL_Delay(100);
                   HAL_GPIO_WritePin(TRANSMITING_LED_GPIO_Port,TRANSMITING_LED_Pin,0);
