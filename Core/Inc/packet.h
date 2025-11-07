@@ -24,7 +24,7 @@
 #define FLAG_ROUTE_DISC (1 << 2)
 #define FLAG_ENCRYPTED  (1 << 3)
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint8_t preamble;
     uint8_t version;
     uint8_t flags;
@@ -43,7 +43,7 @@ bool validate_packet(MeshPacket *pkt);
 int mesh_build_packet(MeshPacket *pkt, uint8_t src, uint8_t dst,
                        uint8_t flags, uint8_t msg_id,
                        const uint8_t *payload, uint8_t length);
-
+MeshPacket process_packet(MeshPacket *pkt,uint8_t packet_size);
 
 
 

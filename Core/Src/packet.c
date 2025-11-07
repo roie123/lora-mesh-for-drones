@@ -58,3 +58,13 @@ int mesh_build_packet(MeshPacket *pkt, uint8_t src, uint8_t dst, uint8_t flags, 
     return true;
 
 }
+
+//TODO : implement
+MeshPacket process_packet(MeshPacket *pkt, uint8_t packet_size) {
+
+
+
+
+
+    return *pkt;
+}

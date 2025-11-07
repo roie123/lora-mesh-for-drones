@@ -63,10 +63,14 @@ volatile uint8_t button_pressed = 0;
 /* USER CODE BEGIN 0 */
 LoRa myLoRa;
 static uint8_t msg_counter = 0;
+uint8_t received_data[10];
+volatile bool light_received_led = false;
 
-uint8_t next_msg_id(void) {
-  return msg_counter++;  // wraps automatically at 255 → 0
-}
+
+
+
+
+uint8_t next_msg_id(void);
 
 /* USER CODE END 0 */
 
@@ -110,21 +114,17 @@ int main(void)
   myLoRa.DIO0_pin        = DID0_Pin;
   myLoRa.hSPIx           = &hspi2;
 
-//  LoRa_init(&myLoRa);
 
 
-  uint16_t LoRa_status = LoRa_init(&myLoRa);
+
+  uint16_t LoRa_status = LoRa_init(&myLoRa); // TODO : check status with  a warning
   LoRa_startReceiving(&myLoRa);
 
-  char*  send_data;
-  send_data = "Hello world!";
-  if(LoRa_transmit(&myLoRa, (uint8_t*)send_data, 12, 100) == 1){
-     HAL_GPIO_WritePin(OK_LED_GPIO_Port, OK_LED_Pin, 1);
-  }
 
 
-  uint8_t received_data[10];
-  uint8_t packet_size = 0;
+
+
+
 
   /* USER CODE END 2 */
 
@@ -146,12 +146,14 @@ int main(void)
               }
           }
 
-      packet_size = LoRa_receive(&myLoRa, received_data, 10);
-      if(packet_size>0){
-                  HAL_GPIO_WritePin(RECEIVING_LED_GPIO_Port,RECEIVING_LED_Pin,1);
-                  HAL_Delay(100);
-                  HAL_GPIO_WritePin(RECEIVING_LED_GPIO_Port,RECEIVING_LED_Pin,0);
-      }
+
+
+    if (light_received_led) {
+      HAL_GPIO_WritePin(RECEIVING_LED_GPIO_Port,RECEIVING_LED_Pin,1);
+      HAL_Delay(100);
+      HAL_GPIO_WritePin(RECEIVING_LED_GPIO_Port,RECEIVING_LED_Pin,0);
+      light_received_led = false;
+    }
        HAL_Delay(500);
 
 
@@ -300,6 +302,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint8_t next_msg_id(void) {
+  return msg_counter++;  // wraps automatically at 255 → 0
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if(GPIO_Pin == BUTTON_Pin){
@@ -308,6 +314,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 //              HAL_Delay(1000);
 //              HAL_GPIO_WritePin(RECIVED__LED_GPIO_Port, RECIVED__LED_Pin, 0);
     }
+
+  if (GPIO_Pin == DID0_Pin) {
+    uint8_t packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
+    light_received_led = true;
+    // if (packet_size > 0) {
+    //   MeshPacket *pkt = (MeshPacket*) (received_data, packet_size);
+    //
+    //   if (pkt->payload ==MOVE_FORWARD) {
+    //     light_recived_led =true;
+    //   }
+    //
+    // }
+
+  }
 }
 
 /* USER CODE END 4 */
