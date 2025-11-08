@@ -14,6 +14,9 @@ typedef enum {
     ROTATE_RIGHT=3,
     INCREASE_THROTTLE=4,
     DECREASE_THROTTLE=5,
+    CONNECT_REQUEST=6,
+    CONNECT_ACK=7,
+
 
 }Commands;
 
