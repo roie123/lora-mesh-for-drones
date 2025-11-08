@@ -27,6 +27,8 @@
 #include <../Inc/commands.h>
 #include "packet.h"
 
+#include "Util/id.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,7 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define UNIQUE_ID_BASE 0x1FFFF7E8U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -105,6 +107,8 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
+  node_id_init();
+
   myLoRa = newLoRa();
   myLoRa.CS_port         = NSS_GPIO_Port;
   myLoRa.CS_pin          = NSS_Pin;
@@ -125,7 +129,6 @@ int main(void)
 
 
 
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -139,7 +142,9 @@ int main(void)
               mesh_build_packet(&pkt,0x00,0x01,FLAG_ACK_REQ ,next_msg_id(),(uint8_t*)&cmd,1);
               uint8_t* temp_p = (uint8_t*)&pkt; // i need this for Lora_transmit
               uint8_t total_len = offsetof(MeshPacket, payload) + pkt.length + 1; // +1 for CRC
-              if(LoRa_transmit(&myLoRa, temp_p, total_len, 100) == 1){
+
+
+              if(LoRa_transmit(&myLoRa, temp_p, total_len, 100)){
                   HAL_GPIO_WritePin(TRANSMITING_LED_GPIO_Port,TRANSMITING_LED_Pin,1);
                   HAL_Delay(100);
                   HAL_GPIO_WritePin(TRANSMITING_LED_GPIO_Port,TRANSMITING_LED_Pin,0);
@@ -318,14 +323,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   if (GPIO_Pin == DID0_Pin) {
     uint8_t packet_size = LoRa_receive(&myLoRa, received_data, sizeof(received_data));
     light_received_led = true;
-    // if (packet_size > 0) {
-    //   MeshPacket *pkt = (MeshPacket*) (received_data, packet_size);
-    //
-    //   if (pkt->payload ==MOVE_FORWARD) {
-    //     light_recived_led =true;
-    //   }
-    //
-    // }
+    if (packet_size > 0) {
+      MeshPacket *pkt = (MeshPacket*) (received_data, packet_size);
+
+      if (pkt->payload ==MOVE_FORWARD) {
+        light_received_led =true;
+      }
+
+    }
 
   }
 }
